@@ -31,6 +31,11 @@ class Discord:
         u = requests.delete(self.base + "/channels/" + str(cid) + "/messages/" + str(mid), headers=self.auth)
         return u
 
+def convert_to_seconds(days, hours, minutes):
+    """Convert days, hours, and minutes into total seconds."""
+    total_seconds = (days * 86400) + (hours * 3600) + (minutes * 60)
+    return total_seconds
+
 def main():
     with open('config.yaml') as cfg:
         conf = yaml.load(cfg, Loader=yaml.FullLoader)
@@ -43,7 +48,13 @@ def main():
         print("[!] Please provide channel id at config.yaml!")
         sys.exit()
 
-    delay = conf['DELAY']
+    # Get delay configuration (in minutes, hours, and days)
+    delay_days = conf['DELAY_DAYS']
+    delay_hours = conf['DELAY_HOURS']
+    delay_minutes = conf['DELAY_MINUTES']
+
+    # Convert delay to total seconds
+    delay = convert_to_seconds(delay_days, delay_hours, delay_minutes)
 
     while True:
         for token_index, token in enumerate(conf['BOT_TOKEN']):
@@ -55,8 +66,8 @@ def main():
                     with open("faucet.txt", "r") as file:
                         faucet_lines = file.readlines()
                     
-                    if faucet_lines:  # Pastikan ada isi dalam faucet.txt
-                        # Ambil pesan sesuai index token
+                    if faucet_lines:  # Ensure faucet.txt is not empty
+                        # Get the message based on the token index
                         if token_index < len(faucet_lines):
                             message = faucet_lines[token_index].strip()
                             send = Bot.sendMessage(chan, message)
